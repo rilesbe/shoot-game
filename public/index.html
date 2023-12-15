@@ -6,15 +6,23 @@
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
         margin: 0;
-        background: #94a3b8;
+        background: white;
       }
 
       input::placeholder {
       color: #94a3b8;
       }
+
+      canvas {
+        width: 1024px;
+        height: 576px;
+        background-image: url("/background.png");
+      }
+
     </style>
   </head>
-  <body>
+  <body style="display: flex; align-items: center; justify-content: center" >
+    <div>
     <div
       style="
         position: absolute;
@@ -82,7 +90,7 @@
     </form>
   </div>
   <!-- username input end -->
-
+  </div>  
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.10.2/gsap.min.js"
       integrity="sha512-kVlGhj2qFy+KBCFuvjBJTGUMxbdqJKs4yK2jh0e0VPhWUPiPC87bzm4THmaaIee3Oj7j6sDpTTgm2EPPiESqBg=="
@@ -90,6 +98,7 @@
       referrerpolicy="no-referrer"
     ></script>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="./js/classes/Enemy.js"></script>
     <script src="./js/classes/Player.js"></script>
     <script src="./js/classes/Particle.js"></script>
     <script src="./js/classes/Projectile.js"></script>

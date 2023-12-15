@@ -7,66 +7,67 @@ const scoreEl = document.querySelector('#scoreEl')
 
 const devicePixelRatio = window.devicePixelRatio || 1
 
-canvas.width = innerWidth * devicePixelRatio
-canvas.height = innerHeight * devicePixelRatio
-//canvas.fill = white
+canvas.width = 1024 * devicePixelRatio
+canvas.height = 576 * devicePixelRatio
+
+c.scale(devicePixelRatio, devicePixelRatio)
 
 const x = canvas.width / 2
 const y = canvas.height / 2
 
-const player = new Player(x, y, 10, 'white')
 const frontEndPlayers = {}
 const frontEndProjectiles = {}
 
-socket.on('updateProjectiles', (backendProjectiles) => {
-    for (const id in backendProjectiles) {
-      const backendProjectile = backendProjectiles[id]
+socket.on('updateProjectiles', (backEndProjectiles) => {
+    for (const id in backEndProjectiles) {
+      const backEndProjectile = backEndProjectiles[id]
 
       if (!frontEndProjectiles[id]) {
         frontEndProjectiles[id] = new Projectile({
-            x: backendProjectile.x,
-            y: backendProjectile.y,
+            x: backEndProjectile.x,
+            y: backEndProjectile.y,
             radius: 5,
-            color: frontEndPlayers[backendProjectile.playerId]?.color,
-            velocity: backendProjectile.velocity
+            color: frontEndPlayers[backEndProjectile.playerId]?.color,
+            velocity: backEndProjectile.velocity
           })
         } else {
-          frontEndProjectiles[id].x += backendProjectiles[id].velocity.x
-          frontEndProjectiles[id].y += backendProjectiles[id].velocity.y
+          frontEndProjectiles[id].x += backEndProjectiles[id].velocity.x
+          frontEndProjectiles[id].y += backEndProjectiles[id].velocity.y
         }
       }
 
       for (const frontEndProjectileId in frontEndProjectiles) {
-        if (!backendProjectiles[frontEndProjectileId]) {
+        if (!backEndProjectiles[frontEndProjectileId]) {
           delete frontEndProjectiles[frontEndProjectileId]
         }
       }
   })
 
-socket.on('updatePlayers', (backendPlayers) => {
-  for (const id in backendPlayers) {
-    const backendPlayer = backendPlayers[id]
+socket.on('updatePlayers', (backEndPlayers) => {
+  for (const id in backEndPlayers) {
+    const backEndPlayer = backEndPlayers[id]
 
     if(!frontEndPlayers[id]) {
       frontEndPlayers[id] = new Player({
-        x: backendPlayer.x, 
-        y: backendPlayer.y,
+        x: backEndPlayer.x, 
+        y: backEndPlayer.y,
         radius: 10,
-        color: backendPlayer.color
+        color: backEndPlayer.color,
+        username: backEndPlayer.username
       })
 
       document.querySelector(
         '#playerLabels'
         ).innerHTML += `<div data-id="${id}" data-score"${
-          backendPlayer.score}">${backendPlayer.username}: ${
-          backendPlayer.score}</div>`
+          backEndPlayer.score}">${backEndPlayer.username}: ${
+          backEndPlayer.score}</div>`
     } else {
       document.querySelector(
         `div[data-id="${id}"]`
-        ).innerHTML = `${backendPlayer.username}: ${backendPlayer.score}`
+        ).innerHTML = `${backEndPlayer.username}: ${backEndPlayer.score}`
 
       document.querySelector(`div[data-id="${id}"]`)
-      .setAttribute('data-score', backendPlayer.score)
+      .setAttribute('data-score', backEndPlayer.score)
 
       //sorts the players divs
       const parentDiv = document.querySelector('#playerLabels')
@@ -88,14 +89,14 @@ socket.on('updatePlayers', (backendPlayers) => {
 
       if (id === socket.id) {
         // if player already exists
-        frontEndPlayers[id].x = backendPlayer.x
-        frontEndPlayers[id].y = backendPlayer.y
+        frontEndPlayers[id].x = backEndPlayer.x
+        frontEndPlayers[id].y = backEndPlayer.y
 
-        const lastBackendInputIndex = playerInputs.findIndex(input => {
-          return backendPlayer.sequenceNumber ===input.sequenceNumber
+        const lastbackEndInputIndex = playerInputs.findIndex(input => {
+          return backEndPlayer.sequenceNumber ===input.sequenceNumber
         })
-        if (lastBackendInputIndex > -1)
-          playerInputs.splice(0, lastBackendInputIndex + 1)
+        if (lastbackEndInputIndex > -1)
+          playerInputs.splice(0, lastbackEndInputIndex + 1)
 
         playerInputs.forEach(input => {
           //for current player
@@ -104,14 +105,18 @@ socket.on('updatePlayers', (backendPlayers) => {
         })
       } else {
         //for all other players
-        frontEndPlayers[id].x += backendPlayer.x
-        frontEndPlayers[id].y += backendPlayer.y
+        gsap.to(frontEndPlayers[id], {
+          x: backEndPlayer.x,
+          y:backEndPlayer.y,
+          duration: 0.015,
+          ease: 'linear'
+        })
       }
     }
   }
   // this is where we delete frontend players
   for (const id in frontEndPlayers) {
-    if (!backendPlayers[id]) {
+    if (!backEndPlayers[id]) {
       const divToDelete = document.querySelector(`div[data-id="${id}"]`)
       divToDelete.parentNode.removeChild(divToDelete)
 
@@ -127,12 +132,12 @@ socket.on('updatePlayers', (backendPlayers) => {
 let animationId
 function animate() {
   animationId = requestAnimationFrame(animate)
-  c.fillStyle = 'rgba(0, 0, 0, 0.1)'
-  c.fillRect(0, 0, canvas.width, canvas.height)
+  // c.fillStyle = 'rgba(0, 0, 0, 0.1)'
+  c.clearRect(0, 0, canvas.width, canvas.height)
 
   for(const id in frontEndPlayers) {
-    const player = frontEndPlayers[id]
-    player.draw()
+    const frontEndPlayer = frontEndPlayers[id]
+    frontEndPlayer.draw()
   }
   for(const id in frontEndProjectiles) {
     const frontEndProjectile = frontEndProjectiles[id]
